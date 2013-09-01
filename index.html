@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<style type="text/css">
+	body{
+		background-color: rgb(140,140,140);
+	}
+	#micanvas{display: none;}
+	section{
+		display: inline-block;
+		max-width: 45%;
+	}
+	#video{
+		opacity: 1;
+	}
+	#foto{
+		box-shadow: 5px 5px 5px rgba(140,140,140,0.5);
+		border-radius: 20px;
+	}
+	</style>
+	<title></title>
+</head>
+<body>
+	<section>
+<section>
+<span>Video</span><br />
+<video id="video" autoplay width="100%"></video>
+</section>
+<section>
+<span>foto</span><br />
+<img id="foto" src="" width="100%" />
+</section>
+<br/>
+<input id="iniciar" type="button" value="iniciar" />
+<input type="button" id="stop" value="stop" />
+<input type="button" id="fotobtn" value="foto" />
+<br />
+<!--
+<section>
+	<span>Objeto audio</span>
+	<audio id="miaudio" controls></audio>
+</section>
+
+<section>
+<input type="button" id="inicia" value="activa micro" />
+<input type="button" id="grabar" value="Grabar" />
+<input type="button" id="detener" value="Detener" />
+<section>
+</section>
+-->
+<canvas id="micanvas" width="10" height="10" ></canvas><br/>
+<span id="archivo"></span>
+<span id="links"></span>
+</section>
+<script type="text/javascript">
+	//var canvas = document.querySelector('canvas');
+	//PARA EL VIDEO 
+	var admite =false;
+	var canvas = document.getElementById('micanvas');
+	var ctx = canvas.getContext('2d');
+	var foto=null;
+	var onFailSoHard = function(e) {
+    	if(e.code==1){
+		    alert('has denegado el uso de la camara');
+		}else{
+		    alert('debido a que tu browser no soporta getUserMedia() aun no puedes usar esta pagina. ');
+		}
+  	};
+  	//PARA EL AUDIO
+  	var voz;
+  	var audioGrabado;
+  	var audio;
+  	function iniciaAudio(){
+  		console.log('inicializando...');
+		window.URL = window.URL || window.webkitURL;
+		navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+		audio = document.getElementById('miaudio');
+		navigator.getUserMedia({audio:true,video:true}, function (stream) {
+				audio.src = window.URL.createObjectURL(stream);
+				audio.play();
+				console.log(stream);
+				voz = stream;
+				console.log('microfono listo!');
+			}, onFailSoHard);
+  	}
+  	function capturaAudio(){
+  		audioGrabado = voz.record();
+		console.log('Grabando ...');
+  	}
+  	function iniciaCapturaVideo(){
+	  	/*window.URL = window.URL || window.webkitURL;
+		navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia ||
+	                          navigator.mozGetUserMedia || navigator.msGetUserMedia;*/
+
+		//var video = document.querySelector('video');
+		var video = document.getElementById('video');
+		if (navigator.getUserMedia) {
+	  		navigator.getUserMedia({video: true}, 
+	  			function(stream) {
+	    			video.src = window.URL.createObjectURL(stream);
+	    			foto = stream;
+	    			admite =true;
+	  			}, onFailSoHard);
+		} else if(navigator.webkitGetUserMedia){
+			navigator.webkitGetUserMedia({video:true},
+				function(stream){
+					video.src=window.webkitURL.createObjectURL(stream);
+					foto = stream;
+					admite =true;
+			},onFailSoHard);
+		}else {
+	  		//video.src = 'somevideo.webm'; // fallback.
+	  		onFailSoHard({target:video});
+		}
+	}
+	/*function fallback(e) {
+	  video.src = 'fallbackvideo.webm';
+	}
+
+	function success(stream) {
+	  video.src = window.URL.createObjectURL(stream);
+	}
+
+	if (!navigator.getUserMedia) {
+	  fallback();
+	} else {
+	  navigator.getUserMedia({video: true}, success, fallback);
+	}*/
+	var archivo = document.getElementById('archivo');
+	var botonstop = document.getElementById('stop');
+	var botonfoto = document.getElementById('fotobtn');
+	var botoninicia = document.getElementById('iniciar');
+	var botoncapturaaudio =document.getElementById('grabar');
+	var botonstopaudio =document.getElementById('detener');
+	var botoniniciaaudio =document.getElementById('inicia');
+	botoninicia.addEventListener('click',function(){
+		iniciaCapturaVideo();
+	});
+	/*
+	botoniniciaaudio.addEventListener('click',function(){
+		iniciaAudio();
+	});
+	botoncapturaaudio.addEventListener('click',function(){
+		capturaAudio();
+	});
+	botonstopaudio.addEventListener('click',function(){
+		console.log('se paro el microfono');
+		voz.stop();
+		audioGrabado.getRecordedData(function(blob) {
+				// Upload blob using XHR2.
+				audio.src = window.URL.createObjectURL(blob);
+				document.getElementById('audiodata').innerHTML = blob;
+				audio.play();
+				console.log('playing from the local blob');
+				console.log(blob);
+			});
+	});*/
+	botonstop.addEventListener('click',function(){
+		console.log('se paro el video');
+		foto.stop();
+	});
+	botonfoto.addEventListener('click',function(){
+		
+		console.log('click en foto');
+		//console.log(video.videoHeight);
+    	canvas.width = video.videoWidth;
+    	canvas.height = video.videoHeight;
+		if (foto && admite) {
+			botonfoto.style.display = "none";
+    		ctx.drawImage(video, 0, 0);
+    		// "image/webp" works in Chrome 18. In other browsers, this will fall back to image/png.
+    		//document.getElementById('foto').src = canvas.toDataURL('image/webp');
+    		document.getElementById('foto').src = canvas.toDataURL('image/png');
+    		//archivo.value = ;
+    		//INICIO envio via ajax
+    		xhr = new XMLHttpRequest();
+    		respuesta  = xhr.responseText;
+		    xhr.open('POST', 'reciveFoto.php');
+		    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+		    xhr.onreadystatechange = function(){
+		      if (this.status == 200 && this.readyState == 4){
+		        archivo.innerHTML=xhr.responseText;
+		        botonfoto.style.display = "";
+		      };
+		    };
+		    archivo.innerHTML="porfavor espere el link de su imagen!...<img src='loading.gif' />";
+		    xhr.send('photo=' + encodeURIComponent(canvas.toDataURL()));
+    		//FIN envio via ajax
+    	}else{
+    		alert('No se ha iniciado el video');
+    	}
+	});
+
+</script>
+
+</body>
+</html>

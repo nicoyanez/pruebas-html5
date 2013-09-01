@@ -1,0 +1,16 @@
+.imagen{
+    border: #999999;
+    border-width: 10px;
+    width: 50px;
+}
+.imagen:hover{
+	    width: 200px;
+	border: 10px outset #cccccc; 
+   	background-color: #cccccc; 
+}
+body
+{ 
+background-repeat:no-repeat;
+background-attachment:fixed;
+background-position:center; 
+}
